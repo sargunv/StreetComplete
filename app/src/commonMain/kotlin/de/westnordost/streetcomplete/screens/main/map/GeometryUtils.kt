@@ -28,7 +28,6 @@ fun BoundingBox.toGeoJsonBoundingBox(): GeoJsonBoundingBox =
         north = max.latitude
     )
 
-// TODO maplibre-compose: Use MapLibre/SpatialK types in StreetComplete business logic to eliminate these bounds adapters?
 fun VisibleBounds.toStreetCompleteBoundingBox(): BoundingBox =
     toBoundingBox().toBoundingBox()
 

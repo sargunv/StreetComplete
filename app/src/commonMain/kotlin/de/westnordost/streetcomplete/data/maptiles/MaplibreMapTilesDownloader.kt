@@ -36,8 +36,8 @@ class MapLibreMapTilesDownloader(
         try {
             manager.resume(pack)
 
-            // TODO maplibre-compose: publish progress without a composition's snapshot notifications.
-            // https://github.com/maplibre/maplibre-compose/blob/v0.16.0/lib/maplibre-compose/src/maplibreNativeMain/kotlin/org/maplibre/compose/offline/MlnFfiOfflineManager.kt#L333-L340
+            // TODO maplibre-compose: Collect downloadProgress directly after upgrading to
+            // a release containing https://github.com/maplibre/maplibre-compose/pull/1405.
             val finalState = snapshotFlow { pack.downloadProgress }.first { it.isFinished }
             when (finalState) {
                 is DownloadProgress.Healthy -> {
@@ -72,8 +72,8 @@ class MapLibreMapTilesDownloader(
     }
 
     override suspend fun deleteOld(time: Long) {
-        // TODO maplibre-compose: await initial pack loading before cleanup.
-        // https://github.com/maplibre/maplibre-compose/blob/v0.16.0/lib/maplibre-compose/src/maplibreNativeMain/kotlin/org/maplibre/compose/offline/MlnFfiOfflineManager.kt#L54-L68
+        // TODO maplibre-compose: Read packs.value after upgrading to a release containing
+        // https://github.com/maplibre/maplibre-compose/pull/1405, which awaits initial loading.
         val packs = manager.packs.toList()
         for (pack in packs) {
             val packTime = pack.metadata?.decodeToString()?.toLongOrNull()

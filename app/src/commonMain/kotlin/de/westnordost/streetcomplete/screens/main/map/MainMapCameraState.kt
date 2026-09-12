@@ -113,6 +113,7 @@ class MainMapCameraState internal constructor(
         } else {
             // TODO maplibre-compose: Query the fitted camera to restore the 0.75 zoom margin,
             // maximum zoom 19, 0.5 zoom threshold, and zoom-dependent duration (as for clusters).
+            // Requires a release containing https://github.com/maplibre/maplibre-compose/pull/1400.
             map.animateCameraToBounds(
                 geometry.bounds.toGeoJsonBoundingBox(), camera.bearing, camera.tilt,
                 duration = 450.milliseconds,

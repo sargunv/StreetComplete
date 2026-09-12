@@ -110,6 +110,7 @@ fun PinsLayers(
             val camera = mapState.cameraPosition
             // TODO maplibre-compose: Query the fitted camera before animating to restore
             // the 0.25 zoom margin, maximum zoom 19, and zoom-dependent duration.
+            // Requires a release containing https://github.com/maplibre/maplibre-compose/pull/1400.
             mapState.animateCameraToBounds(
                 bounds.toGeoJsonBoundingBox(),
                 bearing = camera.bearing,

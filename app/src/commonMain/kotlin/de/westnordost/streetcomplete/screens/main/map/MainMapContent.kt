@@ -90,7 +90,8 @@ internal fun MainMapContent(
         data = GeoJsonData.Features(FeatureCollection(overlayData)),
     )
 
-    // TODO maplibre-compose: Reuse layer IDs after https://github.com/maplibre/maplibre-native-ffi/issues/709.
+    // TODO maplibre-compose: Reuse layer IDs once the runtime includes the fix for
+    // https://github.com/maplibre/maplibre-native-ffi/issues/709.
     val layerIdSuffix = remember(checkNotNull(LocalMapState.current).style.baseStyle) { Uuid.random().toString() }
     MapStyle(
         layerIdSuffix = layerIdSuffix,

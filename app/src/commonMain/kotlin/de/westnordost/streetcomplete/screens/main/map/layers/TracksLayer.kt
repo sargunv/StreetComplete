@@ -6,7 +6,6 @@ import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.charleskorn.kaml.YamlPathSegment.Root.location
 import de.westnordost.streetcomplete.data.osm.mapdata.LatLon
 import de.westnordost.streetcomplete.resources.*
 import de.westnordost.streetcomplete.screens.main.map.animateLatLonAsState
@@ -20,8 +19,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.painterResource
 import org.maplibre.compose.expressions.dsl.const
-import org.maplibre.compose.expressions.dsl.convertToBoolean
-import org.maplibre.compose.expressions.dsl.feature
 import org.maplibre.compose.expressions.dsl.image
 import org.maplibre.compose.expressions.value.LineCap
 import org.maplibre.compose.layers.LineLayer
@@ -149,8 +146,6 @@ private fun TracksLayerDefault(
     isRecording: Boolean,
     opacity: Float,
 ) {
-    val recording = feature["recording"].convertToBoolean()
-
     LineLayer(
         id = id,
         source = source,

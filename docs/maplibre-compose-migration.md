@@ -26,26 +26,33 @@ is a reference for individual migration implementations, not additional scope.
 - Delete this document when no migration work remains. Put any lasting maintenance
   instructions in the appropriate existing project documentation.
 
-## Phase 2: finish offline integration
+## Upstream releases still required
 
-- **Blocked on MapLibre Compose: headless download completion.** Adopt an upstream
-  fix that publishes offline progress without a visible composition. In v0.16,
-  native downloads finish but `snapshotFlow` can remain suspended until snapshot
-  apply notifications are sent. Verify the download worker completes after a cold
-  start without an activity or visible map.
-- **Blocked on MapLibre Compose: initial offline-pack loading.** Adopt an upstream
-  loading guarantee or readiness API before `deleteOld` and `clear` read
-  `OfflineManager.packs`. In v0.16, its initially empty set cannot distinguish
-  loading from an empty cache, so cold-start cleanup can miss saved packs.
-  Verify `Cleaner.cleanOld` and
-  `cleanAll` include existing packs when started by an Android worker.
+- **Offline completion and initial pack loading:** adopt a release containing
+  [MapLibre Compose #1405](https://github.com/maplibre/maplibre-compose/pull/1405).
+  Collect `downloadProgress` directly and read `packs.value` after the manager's
+  initial load. In v0.16, headless `snapshotFlow` can remain suspended after a
+  download finishes, and cold-start cleanup can miss saved packs. Verify the
+  download worker completes without an activity and that `Cleaner.cleanOld` and
+  `cleanAll` include existing packs after a cold start.
+- **Focus and cluster camera parity:** adopt `cameraForBounds` from a release
+  containing [#1400](https://github.com/maplibre/maplibre-compose/pull/1400).
+  Restore the 0.75 focus / 0.25 cluster zoom margins, maximum zoom 19,
+  zoom-dependent durations, and the 0.5 focus zoom threshold. Check point, line,
+  and polygon focus and dense clusters with sheet padding, bearing, and tilt.
+- **Android shader halos:** adopt a release containing
+  [#1394](https://github.com/maplibre/maplibre-compose/pull/1394), then verify pin
+  halos on API 33+ and keep the no-halo fallback below API 33.
+- **Permission changes:** remove `updatesWithPermissionChanges` after adopting a
+  release containing [#1393](https://github.com/maplibre/maplibre-compose/pull/1393).
+  Verify deny/grant/revoke and return from settings during foreground tracking.
+- **Style replacement:** remove the background/road layer ID workaround when the
+  runtime includes the fix for
+  [native-ffi #709](https://github.com/maplibre/maplibre-native-ffi/issues/709).
+  Verify light/dark style changes and overlay replacement preserve their colors.
 
 ## Phase 3: retire the legacy map
 
-- Review the remaining `TODO maplibre-compose` markers after cutover. Reassess
-  `LocationIndicatorLayer` while
-  preserving track-endpoint animation synchronization. Remove obsolete adapters
-  and resolved TODOs; keep unresolved upstream dependencies explicitly tracked.
 - Verify no production, DI, layout, or build references remain to the retired
   code. Recheck Android release assembly, packaged glyphs/images/native libraries,
   first map frame, and offline restart after removal.
