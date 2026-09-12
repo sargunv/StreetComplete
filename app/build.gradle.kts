@@ -223,7 +223,6 @@ kotlin {
             }
         }
         androidMain {
-            kotlin.srcDirs(layout.buildDirectory.dir("generated/androidMain/kotlin"))
             dependencies {
                 // Dependency injection
                 implementation("io.insert-koin:koin-android")
@@ -419,51 +418,6 @@ tasks.register("copyDefaultStringsToEnStrings") {
     }
 }
 
-// necessary as long as map hasn't been converted to compose yet
-tasks.register<CopyIconsTask>("copyIconsToAndroid") {
-    group = "streetcomplete"
-    sourceDir = projectDir.resolve("src/commonMain/composeResources/drawable")
-    targetDir = projectDir.resolve("build/generated/androidMain/res/drawable")
-    filter = {
-        // quest pins, icons for overlays
-        it.startsWith("quest_") ||
-        it.startsWith("building_") ||
-        it.startsWith("preset_") ||
-        it == "sport_volleyball.xml" ||
-        it == "religion_christian.xml" ||
-        it == "religion_jewish.xml" ||
-        it == "religion_muslim.xml" ||
-        it == "address_dot.xml" ||
-        it == "none.png" ||
-        // icons for base map
-        it == "pin_shadow.png" ||
-        it == "location_nyan.png" ||
-        it == "scissors_cut.xml" ||
-        it == "scissors.xml" ||
-        it == "track_nyan.png" ||
-        it == "track_nyan_record.png" ||
-        it == "downloaded_area_hatching.xml" ||
-        it == "location_shadow.xml" ||
-        it == "location_view_direction.xml" ||
-        it == "pin.xml" ||
-        it == "pin_circle.xml"
-    }
-    indexFile = projectDir.resolve("build/generated/androidMain/kotlin/de/westnordost/streetcomplete/view/IconIndex.kt")
-}
-
-tasks.register<CopyStringsTask>("copyStringsToAndroid") {
-    group = "streetcomplete"
-    sourceDir = projectDir.resolve("src/commonMain/composeResources")
-    targetDir = projectDir.resolve("build/generated/androidMain/res")
-}
-
-project.afterEvaluate {
-    tasks.named("androidPreBuild") {
-        dependsOn(tasks.named("copyIconsToAndroid"))
-        dependsOn(tasks.named("copyStringsToAndroid"))
-    }
-}
-
 tasks.register<JavaExec>("printQuestFiltersAsOverpassQL") {
     group = "utils"
 
@@ -482,10 +436,4 @@ tasks.register<JavaExec>("openingHoursParsingStatistics") {
     classpath = testTask.get().classpath
 
     mainClass.set("de.westnordost.streetcomplete.OpeningHoursParsingStatisticsKt")
-}
-
-androidComponents {
-    onVariants { variant ->
-        variant.sources.res?.addStaticSourceDirectory(layout.buildDirectory.dir("generated/androidMain/res").get().asFile.absolutePath)
-    }
 }

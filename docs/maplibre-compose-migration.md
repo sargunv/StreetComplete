@@ -42,10 +42,6 @@ is a reference for individual migration implementations, not additional scope.
 
 ## Phase 3: retire the legacy map
 
-- Delete `CopyIconsTask` and its task wiring when the legacy map's icon consumers
-  are gone. Check remaining `R.string.` references before removing
-  `CopyStringsTask` and its wiring. Remove the generated Android Kotlin source
-  directory registration once no generated-source consumers remain.
 - Delete `ShowMapScreen` and its debug-settings/navigation entry after production
   map validation no longer needs it.
 - Review the remaining `TODO maplibre-compose` markers after cutover. Rebase
