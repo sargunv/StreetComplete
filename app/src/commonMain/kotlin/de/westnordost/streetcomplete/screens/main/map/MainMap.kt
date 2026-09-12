@@ -10,6 +10,7 @@ import org.maplibre.compose.interaction.MapInteractions
 import org.maplibre.compose.map.CameraConstraints
 import org.maplibre.compose.map.MapState
 import org.maplibre.compose.map.MaplibreMap
+import org.maplibre.compose.overlay.MapOverlayScope
 
 /** Presents the shared map. */
 @Composable
@@ -21,6 +22,7 @@ fun MainMap(
     onUserCameraMove: () -> Unit = {},
     onMapClick: (ClickEvent) -> ClickResult = { ClickResult.Pass },
     onMapLongClick: (ClickEvent) -> ClickResult = { ClickResult.Pass },
+    overlay: @Composable MapOverlayScope.() -> Unit = {},
 ) {
     MaplibreMap(
         modifier = modifier,
@@ -44,6 +46,6 @@ fun MainMap(
                 longClick { onEvent(onMapLongClick) }
             }
         },
-        overlay = {},
+        overlay = overlay,
     )
 }

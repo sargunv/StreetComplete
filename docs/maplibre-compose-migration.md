@@ -42,10 +42,8 @@ is a reference for individual migration implementations, not additional scope.
 
 ## Phase 3: retire the legacy map
 
-- Review the remaining `TODO maplibre-compose` markers after cutover. Rebase
-  `PointerPinButton` and `AttributionButton` on the library controls where
-  compatible with the existing Material 2 UI, and review `CompassButton` inputs
-  against the shared camera state. Reassess `LocationIndicatorLayer` while
+- Review the remaining `TODO maplibre-compose` markers after cutover. Reassess
+  `LocationIndicatorLayer` while
   preserving track-endpoint animation synchronization. Remove obsolete adapters
   and resolved TODOs; keep unresolved upstream dependencies explicitly tracked.
 - Verify no production, DI, layout, or build references remain to the retired

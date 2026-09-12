@@ -10,6 +10,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -56,6 +57,7 @@ import de.westnordost.streetcomplete.resources.*
 import de.westnordost.streetcomplete.screens.main.bottom_sheet.MainBottomSheet
 import de.westnordost.streetcomplete.screens.main.controls.LocationState
 import de.westnordost.streetcomplete.screens.main.controls.MainScreenControls
+import de.westnordost.streetcomplete.screens.main.controls.PointerPinButton
 import de.westnordost.streetcomplete.screens.main.edithistory.EditHistorySidebar
 import de.westnordost.streetcomplete.screens.main.edithistory.EditHistoryViewModel
 import de.westnordost.streetcomplete.screens.main.errors.LastCrashEffect
@@ -91,6 +93,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
@@ -108,6 +111,7 @@ import org.maplibre.compose.location.SystemSettingsLauncher
 import org.maplibre.compose.map.LocalMapState
 import org.maplibre.compose.map.MapRuntime
 import org.maplibre.compose.map.rememberMapState
+import org.maplibre.compose.overlay.attributions
 import org.maplibre.compose.style.BaseStyle
 import org.maplibre.spatialk.units.Bearing
 import org.maplibre.spatialk.units.International
@@ -329,9 +333,6 @@ fun MainScreen(
 
     fun getOffset(position: LatLon): Offset? = mapState.screenLocationFromPosition(position.toPosition())?.let {
         with(density) { Offset(it.x.toPx(), it.y.toPx()) } + mapOrigin
-    }
-    val displayedPosition = remember(displayedLocation, viewport, mapCamera, mapOrigin) {
-        displayedLocation?.position?.toLatLon()?.let(::getOffset)
     }
     val geometryOffsetInWindow = remember(shownBottomSheet, viewport, mapCamera, mapOrigin) {
         shownBottomSheet?.position?.let(::getOffset)
@@ -572,6 +573,15 @@ fun MainScreen(
                 }
                 ClickResult.Consume
             },
+            overlay = {
+                if (!showIntroTutorial) {
+                    displayedLocation?.position?.let { position ->
+                        PointerPinButton(targetPosition = position, onClick = ::followLocation) {
+                            Image(painterResource(Res.drawable.location_dot_small), null)
+                        }
+                    }
+                }
+            },
         )
 
         // TODO: Alternative to this would be to put the tutorial screens into a separate
@@ -613,9 +623,7 @@ fun MainScreen(
                 locationState = locationState,
                 isNavigationMode = isNavigationMode,
                 isFollowingPosition = isFollowingPosition,
-                displayedLocationOffset = displayedPosition,
                 onClickLocation = ::clickLocation,
-                onClickLocationPointer = ::followLocation,
 
                 isRecordingTracks = isRecordingTracks,
                 onClickStopTrackRecording = {
@@ -653,6 +661,7 @@ fun MainScreen(
                 },
 
                 metersPerDp = metersPerDp,
+                attributions = mapState.style.attributions(),
                 userHasMovedMap = userHasMovedCamera,
             )
         }
