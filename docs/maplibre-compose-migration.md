@@ -42,12 +42,6 @@ is a reference for individual migration implementations, not additional scope.
 
 ## Phase 3: retire the legacy map
 
-After the production validation below passes:
-
-- Remove the legacy map fragments, components, managers, camera/style/image
-  helpers, and Android map downloader. Handle tasks saved with legacy fragments
-  before removing their classes; the new host currently removes restored fragments
-  after `super.onCreate`.
 - Remove the direct Android SDK dependency and map assets/glyphs used only by the
   legacy renderer. Remove `updateMapStyle`, `UpdateMapStyleTask`, and the root
   update task's reference once their Android JSON style files are retired. Retain

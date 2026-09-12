@@ -6,14 +6,12 @@ import android.view.WindowManager
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.platform.ComposeView
-import androidx.fragment.app.commitNow
 import de.westnordost.streetcomplete.data.FeedsUpdater
 import de.westnordost.streetcomplete.data.PeriodicCleaner
 import de.westnordost.streetcomplete.data.preferences.Preferences
 import de.westnordost.streetcomplete.data.quest.AutoSyncer
 import de.westnordost.streetcomplete.screens.BaseActivity
 import de.westnordost.streetcomplete.screens.about.AboutActivity
-import de.westnordost.streetcomplete.screens.main.map.MainMapFragment
 import de.westnordost.streetcomplete.screens.settings.SettingsActivity
 import de.westnordost.streetcomplete.screens.user.UserActivity
 import de.westnordost.streetcomplete.ui.theme.AppTheme
@@ -35,12 +33,10 @@ class MainActivity : BaseActivity(), AndroidScopeComponent {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
+        // Drop legacy fragments before AndroidX restores their removed classes, retaining Compose state.
+        savedInstanceState?.getBundle("androidx.lifecycle.BundlableSavedStateRegistry.key")
+            ?.remove("android:support:fragments")
         super.onCreate(savedInstanceState)
-
-        // An existing task may restore the old map fragment after upgrading the app.
-        supportFragmentManager.fragments.filterIsInstance<MainMapFragment>().forEach { fragment ->
-            supportFragmentManager.commitNow { remove(fragment) }
-        }
 
         if (savedInstanceState == null) handleIntent(intent)
         lifecycle.addObserver(autoSyncer)
