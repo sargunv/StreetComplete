@@ -51,12 +51,6 @@ is a reference for individual migration implementations, not additional scope.
   [native-ffi #709](https://github.com/maplibre/maplibre-native-ffi/issues/709).
   Verify light/dark style changes and overlay replacement preserve their colors.
 
-## Phase 3: retire the legacy map
-
-- Verify no production, DI, layout, or build references remain to the retired
-  code. Recheck Android release assembly, packaged glyphs/images/native libraries,
-  first map frame, and offline restart after removal.
-
 ## Production validation still required
 
 - Compare the shared map with the legacy map for layer order, road/bridge
@@ -64,7 +58,7 @@ is a reference for individual migration implementations, not additional scope.
   location/track synchronization, labels, font scale, language, theme, and system
   animation settings. Fix unintended differences; validate StreetComplete behavior
   with checks proportional to the existing tests. Do not require pixel parity for
-  deliberate changes such as painter halos or removal of enlarged hit areas.
+  deliberate changes such as removal of enlarged hit areas.
 - Exercise the Android production UI on a physical device with dense quests and
   clusters, edit history, overlay/form/create modes, GPS/navigation/recording,
   airplane-mode use after download and restart, download cancellation/deletion,
@@ -83,7 +77,3 @@ is a reference for individual migration implementations, not additional scope.
   an older device below API 33; the API 26 emulator cannot initialize Vulkan.
   Check map-entry responsiveness, rendering correctness, and background/resume. Resolve
   demonstrated compatibility problems before production cutover.
-
-## Before marking ready for review
-
-- Delete the temporary root `AGENTS.md` containing this branch's working preferences.
