@@ -10,9 +10,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import de.westnordost.streetcomplete.data.location.Location
 import de.westnordost.streetcomplete.resources.Res
-import de.westnordost.streetcomplete.resources.map_location_nyan
-import de.westnordost.streetcomplete.resources.map_location_shadow
-import de.westnordost.streetcomplete.resources.map_location_view_direction
+import de.westnordost.streetcomplete.resources.location_nyan
+import de.westnordost.streetcomplete.resources.location_shadow
+import de.westnordost.streetcomplete.resources.location_view_direction
 import de.westnordost.streetcomplete.screens.main.map.animateLatLonAsState
 import de.westnordost.streetcomplete.screens.main.map.inMeters
 import de.westnordost.streetcomplete.screens.main.map.toGeometry
@@ -66,7 +66,7 @@ fun CurrentLocationLayers(
         SymbolLayer(
             id = "direction",
             source = source,
-            iconImage = image(painterResource(Res.drawable.map_location_view_direction)),
+            iconImage = image(painterResource(Res.drawable.location_view_direction)),
             iconAllowOverlap = const(true),
             iconIgnorePlacement = const(true),
             iconRotate = const(rotation),
@@ -76,7 +76,7 @@ fun CurrentLocationLayers(
     SymbolLayer(
         id = "location-shadow",
         source = source,
-        iconImage = image(painterResource(Res.drawable.map_location_shadow)),
+        iconImage = image(painterResource(Res.drawable.location_shadow)),
         iconAllowOverlap = const(true),
         iconIgnorePlacement = const(true),
         iconPitchAlignment = const(IconPitchAlignment.Map),
@@ -95,7 +95,7 @@ fun CurrentLocationLayers(
         SymbolLayer(
             id = "location-nyan",
             source = source,
-            iconImage = image(painterResource(Res.drawable.map_location_nyan)),
+            iconImage = image(painterResource(Res.drawable.location_nyan)),
             iconSize = const(2f),
             iconAllowOverlap = const(true),
             iconIgnorePlacement = const(true),

@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import de.westnordost.streetcomplete.data.osm.mapdata.LatLon
 import de.westnordost.streetcomplete.resources.Res
-import de.westnordost.streetcomplete.resources.map_pin_circle
+import de.westnordost.streetcomplete.resources.pin_circle
 import de.westnordost.streetcomplete.screens.main.map.pinPainter
 import de.westnordost.streetcomplete.screens.main.map.toGeoJsonBoundingBox
 import de.westnordost.streetcomplete.ui.ktx.id
@@ -133,7 +133,7 @@ fun PinsLayers(
             zoom().lte(const(CLUSTER_MAX_ZOOM)),
             feature["point_count"].convertToNumber().gt(const(1)),
         ),
-        iconImage = image(painterResource(Res.drawable.map_pin_circle)),
+        iconImage = image(painterResource(Res.drawable.pin_circle)),
         iconSize = const(0.5f) + (log2(feature["point_count"].convertToNumber()) / const(10f)),
         iconAllowOverlap = const(true),
         iconIgnorePlacement = const(true),

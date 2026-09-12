@@ -136,8 +136,8 @@ private fun TracksLayerApril1st(
         opacity = const(opacity),
         width = const(26.dp),
         pattern = image(painterResource(
-            if (isRecording) Res.drawable.map_track_nyan_record
-            else Res.drawable.map_track_nyan
+            if (isRecording) Res.drawable.track_nyan_record
+            else Res.drawable.track_nyan
         )),
     )
 }
