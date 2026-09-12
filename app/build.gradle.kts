@@ -248,9 +248,6 @@ kotlin {
                 // map
                 implementation("org.maplibre.compose:maplibre-compose-runtime-vulkan-android:0.16.0")
 
-                // map and location
-                implementation("org.maplibre.gl:android-sdk-opengl:13.3.1")
-
                 // required to @Preview composables in Android Studio
                 runtimeOnly("androidx.compose.ui:ui-tooling:1.10.0")
             }
@@ -399,13 +396,6 @@ tasks.register<UpdateChangelogTask>("updateChangelog") {
     group = "streetcomplete"
     sourceFile = rootDir.resolve("CHANGELOG.md")
     targetFile = projectDir.resolve("src/commonMain/composeResources/files/changelog.html")
-}
-
-tasks.register<UpdateMapStyleTask>("updateMapStyle") {
-    group = "streetcomplete"
-    targetDir = projectDir.resolve("src/androidMain/assets/map_theme")
-    apiKey = "mL9X4SwxfsAGfojvGiion9hPKuGLKxPbogLyMbtakA2gJ3X88gcVlTSQ7OD6OfbZ"
-    mapStyleBranch = "master"
 }
 
 tasks.register<GenerateMetadataByCountryTask>("generateMetadataByCountry") {

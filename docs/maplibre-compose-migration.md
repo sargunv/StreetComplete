@@ -42,10 +42,6 @@ is a reference for individual migration implementations, not additional scope.
 
 ## Phase 3: retire the legacy map
 
-- Remove the direct Android SDK dependency and map assets/glyphs used only by the
-  legacy renderer. Remove `updateMapStyle`, `UpdateMapStyleTask`, and the root
-  update task's reference once their Android JSON style files are retired. Retain
-  resource-copy helpers still used by the shared implementation or other screens.
 - Delete `CopyIconsTask` and its task wiring when the legacy map's icon consumers
   are gone. Check remaining `R.string.` references before removing
   `CopyStringsTask` and its wiring. Remove the generated Android Kotlin source
