@@ -42,8 +42,6 @@ is a reference for individual migration implementations, not additional scope.
 
 ## Phase 3: retire the legacy map
 
-- Delete `ShowMapScreen` and its debug-settings/navigation entry after production
-  map validation no longer needs it.
 - Review the remaining `TODO maplibre-compose` markers after cutover. Rebase
   `PointerPinButton` and `AttributionButton` on the library controls where
   compatible with the existing Material 2 UI, and review `CompassButton` inputs
@@ -72,9 +70,10 @@ is a reference for individual migration implementations, not additional scope.
   dimensions and glyph loading. This validates the shared map, not the full iOS
   application migration.
 - **Needs investigation: map-entry responsiveness on the Moto G 5G (2024).**
-  Opening `ShowMapScreen` reportedly freezes the UI for about a second. Profile
-  cold and repeated entry, distinguish UI-thread blocking from renderer
-  initialization and tile loading, and verify navigation stays responsive.
+  The former debug map entry reportedly froze the UI for about a second. Profile
+  cold startup and repeated entry to the production map, distinguish UI-thread
+  blocking from renderer initialization and tile loading, and verify navigation
+  stays responsive.
 - Validate the selected Vulkan backend on supported Android devices, including
   an older device below API 33; the API 26 emulator cannot initialize Vulkan.
   Check map-entry responsiveness, rendering correctness, and background/resume. Resolve
