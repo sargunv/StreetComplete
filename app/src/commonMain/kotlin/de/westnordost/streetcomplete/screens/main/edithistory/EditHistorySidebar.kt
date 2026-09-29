@@ -1,5 +1,6 @@
 package de.westnordost.streetcomplete.screens.main.edithistory
 
+import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -31,15 +32,22 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.navigationevent.NavigationEventInfo
+import androidx.navigationevent.NavigationEventTransitionState
+import androidx.navigationevent.compose.NavigationBackHandler
+import androidx.navigationevent.compose.rememberNavigationEventState
 import de.westnordost.streetcomplete.data.edithistory.Edit
 import de.westnordost.streetcomplete.data.osm.mapdata.Element
 import de.westnordost.streetcomplete.resources.*
-import de.westnordost.streetcomplete.ui.common.NonPredictiveBackHandler
 import de.westnordost.streetcomplete.ui.common.ToastPopup
+import de.westnordost.streetcomplete.ui.ktx.dir
 import de.westnordost.streetcomplete.ui.ktx.isItemAtIndexFullyVisible
 import de.westnordost.streetcomplete.ui.ktx.plus
 import de.westnordost.streetcomplete.ui.theme.titleSmall
@@ -86,10 +94,23 @@ fun EditHistorySidebar(
         }
     }
 
-    // close on back
-    NonPredictiveBackHandler {
-        onDismissRequest()
+    // close on back. While the back gesture is in progress, the sidebar follows it towards its edge
+    val backState = rememberNavigationEventState(NavigationEventInfo.None)
+    val backProgress = remember { Animatable(0f) }
+    LaunchedEffect(backState) {
+        snapshotFlow { backState.transitionState }.collect { transitionState ->
+            if (transitionState is NavigationEventTransitionState.InProgress) {
+                backProgress.snapTo(transitionState.latestEvent.progress)
+            }
+        }
     }
+    NavigationBackHandler(
+        state = backState,
+        onBackCancelled = { scope.launch { backProgress.animateTo(0f) } },
+        // the sidebar stays where the gesture left it, the exit animation continues from there
+        onBackCompleted = onDismissRequest
+    )
+    val dir = LocalLayoutDirection.current.dir
 
     fun onClickUndoEdit(edit: Edit) {
         if (edit.isUndoable) {
@@ -104,6 +125,7 @@ fun EditHistorySidebar(
 
     Surface(
         modifier = modifier
+            .graphicsLayer { translationX = -backProgress.value * size.width * dir }
             .fillMaxHeight()
             .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.End))
             .shadow(16.dp),
