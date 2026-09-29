@@ -1,6 +1,8 @@
 package de.westnordost.streetcomplete.overlays.street_parking
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.SeekableTransitionState
+import androidx.compose.animation.core.rememberTransition
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
@@ -23,10 +25,13 @@ import androidx.compose.material.Text
 import androidx.compose.material.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -34,6 +39,10 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.navigationevent.NavigationEventInfo
+import androidx.navigationevent.NavigationEventTransitionState
+import androidx.navigationevent.compose.NavigationBackHandler
+import androidx.navigationevent.compose.rememberNavigationEventState
 import com.cheonjaeung.compose.grid.SimpleGridCells
 import de.westnordost.streetcomplete.osm.street_parking.ParkingOrientation
 import de.westnordost.streetcomplete.osm.street_parking.ParkingPosition
@@ -44,10 +53,10 @@ import de.westnordost.streetcomplete.osm.street_parking.painter
 import de.westnordost.streetcomplete.osm.street_parking.title
 import de.westnordost.streetcomplete.resources.*
 import de.westnordost.streetcomplete.ui.common.BackIcon
-import de.westnordost.streetcomplete.ui.common.NonPredictiveBackHandler
 import de.westnordost.streetcomplete.ui.common.item_select.ImageWithLabel
 import de.westnordost.streetcomplete.ui.common.item_select.ItemSelectGrid
 import de.westnordost.streetcomplete.ui.ktx.fadingVerticalScrollEdges
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 
 /** Dialog in which both the parking orientation and parking position is selected in two steps. */
@@ -83,9 +92,27 @@ fun StreetParkingSelectionDialog(
         onDismissRequest = onDismissRequest,
         properties = properties
     ) {
-        NonPredictiveBackHandler(isBackEnabled = parkingOrientation != null) {
-            parkingOrientation = null
+        // Back goes to the previous step. While the back gesture is in progress, the transition to
+        // the previous step follows it
+        val stepTransitionState = remember { SeekableTransitionState(parkingOrientation) }
+        LaunchedEffect(parkingOrientation) { stepTransitionState.animateTo(parkingOrientation) }
+        val backState = rememberNavigationEventState(NavigationEventInfo.None)
+        LaunchedEffect(backState) {
+            snapshotFlow { backState.transitionState }.collect { transitionState ->
+                if (transitionState is NavigationEventTransitionState.InProgress) {
+                    stepTransitionState.seekTo(transitionState.latestEvent.progress, targetState = null)
+                }
+            }
         }
+        val scope = rememberCoroutineScope()
+        NavigationBackHandler(
+            state = backState,
+            isBackEnabled = parkingOrientation != null,
+            onBackCancelled = {
+                scope.launch { stepTransitionState.animateTo(stepTransitionState.currentState) }
+            },
+            onBackCompleted = { parkingOrientation = null }
+        )
 
         Surface(
             modifier = modifier,
@@ -93,10 +120,9 @@ fun StreetParkingSelectionDialog(
             color = backgroundColor,
             contentColor = contentColor,
         ) {
-            AnimatedContent(
-                targetState = parkingOrientation,
+            rememberTransition(stepTransitionState).AnimatedContent(
                 transitionSpec = {
-                    val dir = if (parkingOrientation != null) 1 else -1
+                    val dir = if (targetState != null) 1 else -1
                     slideInHorizontally { it * dir } togetherWith slideOutHorizontally { -it * dir }
                 }
             ) { orientation ->
