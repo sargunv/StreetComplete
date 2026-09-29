@@ -22,14 +22,22 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import de.westnordost.streetcomplete.ui.common.NonPredictiveBackHandler
+import androidx.navigationevent.NavigationEventInfo
+import androidx.navigationevent.NavigationEventTransitionState
+import androidx.navigationevent.compose.NavigationBackHandler
+import androidx.navigationevent.compose.rememberNavigationEventState
 import kotlinx.coroutines.launch
 
 /** Generic multiple-page tutorial screen */
@@ -46,23 +54,55 @@ fun TutorialScreen(
 ) {
     val state = rememberPagerState { pageCount }
     val scope = rememberCoroutineScope()
-    NonPredictiveBackHandler {
-        if (state.currentPage > 0) {
-            scope.launch {
-                state.animateScrollToPage(state.currentPage - 1)
+
+    // Back goes to the previous page. While the back gesture is in progress, the pager follows it,
+    // but the page it started on remains the current page until the gesture is completed
+    val backState = rememberNavigationEventState(NavigationEventInfo.None)
+    var backGesturePage by remember { mutableStateOf<Int?>(null) }
+    val page = backGesturePage ?: state.currentPage
+    LaunchedEffect(backState, state) {
+        snapshotFlow { backState.transitionState }.collect { transitionState ->
+            if (transitionState is NavigationEventTransitionState.InProgress) {
+                val startPage = backGesturePage ?: state.currentPage.also { backGesturePage = it }
+                if (startPage > 0) {
+                    val pageSize = state.layoutInfo.pageSize + state.layoutInfo.pageSpacing
+                    val position = state.currentPage + state.currentPageOffsetFraction
+                    val targetPosition = startPage - transitionState.latestEvent.progress
+                    state.dispatchRawDelta((targetPosition - position) * pageSize)
+                }
             }
-        } else if (dismissOnBackPress) {
-            onDismissRequest()
         }
     }
-    LaunchedEffect(state.currentPage) {
-        onPageChanged(state.currentPage)
+    NavigationBackHandler(
+        state = backState,
+        // on the first page, back is left to the navigation, which dismisses this screen
+        isBackEnabled = page > 0 || !dismissOnBackPress,
+        onBackCancelled = {
+            val startPage = backGesturePage ?: return@NavigationBackHandler
+            scope.launch {
+                state.animateScrollToPage(startPage)
+                backGesturePage = null
+            }
+        },
+        onBackCompleted = {
+            backGesturePage = null
+            if (page > 0) {
+                scope.launch {
+                    state.animateScrollToPage(page - 1)
+                }
+            } else if (dismissOnBackPress) {
+                onDismissRequest()
+            }
+        }
+    )
+    LaunchedEffect(page) {
+        onPageChanged(page)
     }
 
     Surface(Modifier.fillMaxSize()) {
         TutorialScreenLayout(
             illustration = {
-                illustration(state.currentPage)
+                illustration(page)
             },
             pageContent = {
                 HorizontalPager(
