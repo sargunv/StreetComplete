@@ -7,6 +7,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import de.westnordost.streetcomplete.screens.main.map.MapImages
+import de.westnordost.streetcomplete.screens.main.map.iconNamePrefix
 import de.westnordost.streetcomplete.screens.main.map.byZoom
 import de.westnordost.streetcomplete.screens.main.map.inMeters
 import de.westnordost.streetcomplete.screens.main.map.isArea
@@ -25,6 +26,7 @@ import org.maplibre.compose.expressions.dsl.convertToNumber
 import org.maplibre.compose.expressions.dsl.convertToString
 import org.maplibre.compose.expressions.dsl.feature
 import org.maplibre.compose.expressions.dsl.image
+import org.maplibre.compose.expressions.dsl.plus
 import org.maplibre.compose.expressions.dsl.not
 import org.maplibre.compose.expressions.dsl.offset
 import org.maplibre.compose.expressions.dsl.step
@@ -57,7 +59,7 @@ fun StyleableOverlayLabelLayer(
     onClickElement: (properties: JsonObject) -> ClickResult,
 ) {
     val painters = icons.associateWith { painterResource(it) }
-    LaunchedEffect(mapImages, painters) { mapImages.addIcons(painters) }
+    LaunchedEffect(mapImages, painters, color, haloColor) { mapImages.addIcons(painters, color, haloColor) }
 
     SymbolLayer(
         id = "overlay-symbols",
@@ -65,10 +67,7 @@ fun StyleableOverlayLabelLayer(
         minZoom = 17f,
         filter = feature.isPoint(),
         zOrder = const(SymbolZOrder.Source),
-        iconImage = image(feature["icon"].convertToString()),
-        iconColor = const(color),
-        iconHaloColor = const(haloColor),
-        iconHaloWidth = const(2.5.dp),
+        iconImage = image(const(iconNamePrefix(color, haloColor)) + feature["icon"].convertToString()),
         iconSize = byZoom(17 to 0.5f, 19 to 1f),
         iconAllowOverlap = const(true),
         textField = feature["label"].convertToString(),

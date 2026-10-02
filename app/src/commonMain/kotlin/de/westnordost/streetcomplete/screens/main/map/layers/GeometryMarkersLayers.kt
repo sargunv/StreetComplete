@@ -12,6 +12,7 @@ import androidx.compose.ui.unit.sp
 import de.westnordost.streetcomplete.resources.Res
 import de.westnordost.streetcomplete.resources.preset_maki_circle
 import de.westnordost.streetcomplete.screens.main.map.MapImages
+import de.westnordost.streetcomplete.screens.main.map.iconNamePrefix
 import de.westnordost.streetcomplete.screens.main.map.byZoom
 import de.westnordost.streetcomplete.screens.main.map.isArea
 import de.westnordost.streetcomplete.screens.main.map.isPoint
@@ -25,6 +26,7 @@ import org.maplibre.compose.expressions.dsl.const
 import org.maplibre.compose.expressions.dsl.convertToString
 import org.maplibre.compose.expressions.dsl.feature
 import org.maplibre.compose.expressions.dsl.image
+import org.maplibre.compose.expressions.dsl.plus
 import org.maplibre.compose.expressions.dsl.not
 import org.maplibre.compose.expressions.dsl.textOffset
 import org.maplibre.compose.expressions.value.LineCap
@@ -47,7 +49,7 @@ import org.maplibre.spatialk.geojson.Geometry
 fun GeometryMarkersLayers(markers: Collection<Marker>, haloColor: Color, mapImages: MapImages) {
     val icons = remember(markers) { markers.mapTo(LinkedHashSet()) { it.icon ?: Res.drawable.preset_maki_circle } }
     val painters = icons.associateWith { painterResource(it) }
-    LaunchedEffect(mapImages, painters) { mapImages.addIcons(painters) }
+    LaunchedEffect(mapImages, painters, haloColor) { mapImages.addIcons(painters, Color.GeometryMarker, haloColor) }
 
     val features by produceState<List<Feature<Geometry, JsonObject>>>(emptyList(), markers) {
         value = withContext(Dispatchers.Default) { markers.flatMap { it.toGeoJsonFeature() } }
@@ -77,10 +79,7 @@ fun GeometryMarkersLayers(markers: Collection<Marker>, haloColor: Color, mapImag
         id = "geo-symbols",
         source = source,
         filter = feature.isPoint(),
-        iconImage = image(feature["icon"].convertToString()),
-        iconColor = const(Color.GeometryMarker),
-        iconHaloColor = const(haloColor),
-        iconHaloWidth = const(2.5.dp),
+        iconImage = image(const(iconNamePrefix(Color.GeometryMarker, haloColor)) + feature["icon"].convertToString()),
         iconSize = byZoom(17 to 0.5f, 19 to 1f),
         iconAllowOverlap = const(true),
         textField = feature["label"].convertToString(),
