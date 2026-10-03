@@ -58,6 +58,9 @@ buildkonfig {
     }
 
     targetConfigs {
+        create("desktop") {
+            buildConfigField(STRING, "PLATFORM", "desktop")
+        }
         create("android") {
             buildConfigField(STRING, "PLATFORM", "android")
         }
@@ -119,7 +122,29 @@ kotlin {
         }
     }
 
+    jvm("desktop") {
+        compilerOptions.jvmTarget.set(JvmTarget.JVM_25)
+    }
+
+    applyDefaultHierarchyTemplate()
+
     sourceSets {
+        val jvmAndroidMain by creating { dependsOn(commonMain.get()) }
+        val nonAndroidMain by creating { dependsOn(commonMain.get()) }
+        val mobileMain by creating { dependsOn(commonMain.get()) }
+        androidMain {
+            dependsOn(jvmAndroidMain)
+            dependsOn(mobileMain)
+        }
+        iosMain {
+            dependsOn(nonAndroidMain)
+            dependsOn(mobileMain)
+        }
+        getByName("desktopMain") {
+            dependsOn(jvmAndroidMain)
+            dependsOn(nonAndroidMain)
+        }
+
         commonMain {
             dependencies {
                 // Kotlin
@@ -134,7 +159,6 @@ kotlin {
                 implementation("io.insert-koin:koin-core")
                 implementation("io.insert-koin:koin-compose")
                 implementation("io.insert-koin:koin-compose-viewmodel")
-                implementation("io.insert-koin:koin-androidx-compose-navigation")
 
                 // Logging
                 implementation("co.touchlab:kermit:2.2.0")
@@ -210,9 +234,6 @@ kotlin {
                 // reorderable lists (raw Compose API is pretty complicated)
                 implementation("sh.calvin.reorderable:reorderable:3.1.0")
 
-                // multiplatform webview (for login via OAuth)
-                implementation("io.github.kevinnzou:compose-webview-multiplatform:2.0.3")
-
                 // sharing presets/settings via QR Code
                 implementation("io.github.alexzhirkevich:qrose:1.3.0")
 
@@ -221,6 +242,18 @@ kotlin {
 
                 // taking a photo (, picking an image from gallery, ...)
                 implementation("io.github.vinceglb:filekit-dialogs-compose:0.16.0")
+            }
+        }
+        getByName("mobileMain") {
+            dependencies {
+                implementation("io.github.kevinnzou:compose-webview-multiplatform:2.0.3")
+            }
+        }
+        getByName("desktopMain") {
+            dependencies {
+                implementation(compose.desktop.currentOs)
+                implementation("io.ktor:ktor-client-cio:3.5.2")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.11.0")
             }
         }
         androidMain {

@@ -37,7 +37,7 @@ import de.westnordost.streetcomplete.resources.*
 import de.westnordost.streetcomplete.ui.common.BackIcon
 import de.westnordost.streetcomplete.ui.common.CenteredLargeTitleHint
 import de.westnordost.streetcomplete.ui.ktx.isScrolledToEnd
-import io.github.vinceglb.filekit.dialogs.compose.rememberShareFileLauncher
+import de.westnordost.streetcomplete.ui.util.rememberShareFileLauncher
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -80,7 +80,7 @@ fun LogsScreen(
                 }
                 IconButton(onClick = {
                     coroutineScope.launch {
-                        shareFileLauncher.launch(viewModel.createLogsFile())
+                        shareFileLauncher(viewModel.createLogsFile())
                     }
                 }) {
                     Icon(
