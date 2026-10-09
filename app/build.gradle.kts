@@ -44,6 +44,9 @@ plugins {
 }
 
 repositories {
+    mavenLocal {
+        content { includeGroup("org.maplibre.nativeffi") }
+    }
     google()
     mavenCentral()
 }
