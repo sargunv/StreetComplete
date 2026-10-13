@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import de.westnordost.streetcomplete.resources.Res
 import de.westnordost.streetcomplete.resources.pin
-import de.westnordost.streetcomplete.resources.pin_shadow
+import de.westnordost.streetcomplete.resources.pin_halo
 import de.westnordost.streetcomplete.ui.ktx.id
 import de.westnordost.streetcomplete.ui.util.ColorFilterPainter
 import de.westnordost.streetcomplete.ui.util.WithHaloPainter
@@ -36,9 +36,9 @@ fun rememberMapImages(mapState: MapState): MapImages {
     val density = LocalDensity.current
     val layoutDirection = LocalLayoutDirection.current
     val pin = painterResource(Res.drawable.pin)
-    val pinShadow = painterResource(Res.drawable.pin_shadow)
-    return remember(mapState, density, layoutDirection, pin, pinShadow) {
-        MapImages(mapState, density, layoutDirection, pin, pinShadow)
+    val pinHalo = painterResource(Res.drawable.pin_halo)
+    return remember(mapState, density, layoutDirection, pin, pinHalo) {
+        MapImages(mapState, density, layoutDirection, pin, pinHalo)
     }
 }
 
@@ -49,16 +49,17 @@ class MapImages internal constructor(
     private val density: Density,
     private val layoutDirection: LayoutDirection,
     private val pin: Painter,
-    private val pinShadow: Painter,
+    private val pinHalo: Painter,
 ) {
     private val mutex = Mutex()
 
-    /** Adds quest pins with the given icons, named "pin_" + icon id */
+    /** Adds quest pins with the given icons, named "pin_" + icon id. The shadow they cast onto the
+     *  ground is not part of the image, it is drawn separately, flat on the map. */
     suspend fun addPins(icons: Map<DrawableResource, Painter>) =
         add(icons, { "pin_" + it.id }) { _, painter ->
-            val pinPainter = PinPainter(painter, pin, pinShadow)
+            val pinPainter = PinPainter(painter, pin, pinHalo)
             ResolvedStyleImage.fromPainter(
-                pinPainter, density, layoutDirection, size = pinPainter.sizeAtMost(PIN_SIZE)
+                pinPainter, density, layoutDirection, size = PIN_SIZE
             )
         }
 
@@ -106,7 +107,7 @@ class MapImages internal constructor(
     }
 
     private companion object {
-        val PIN_SIZE = 71.dp
+        val PIN_SIZE = DpSize(62.dp, 71.dp)
         val MAX_ICON_SIZE = 48.dp
         /** same as the halo of labels on the map */
         val ICON_HALO_WIDTH = 2.5.dp

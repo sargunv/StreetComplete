@@ -1,14 +1,12 @@
 package de.westnordost.streetcomplete.screens.main.map.layers
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import de.westnordost.streetcomplete.resources.Res
@@ -26,6 +24,7 @@ import org.maplibre.compose.expressions.dsl.convertToNumber
 import org.maplibre.compose.expressions.dsl.convertToString
 import org.maplibre.compose.expressions.dsl.div
 import org.maplibre.compose.expressions.dsl.feature
+import org.maplibre.compose.expressions.dsl.format
 import org.maplibre.compose.expressions.dsl.gt
 import org.maplibre.compose.expressions.dsl.image
 import org.maplibre.compose.expressions.dsl.log2
@@ -33,8 +32,13 @@ import org.maplibre.compose.expressions.dsl.lte
 import org.maplibre.compose.expressions.dsl.offset
 import org.maplibre.compose.expressions.dsl.plus
 import org.maplibre.compose.expressions.dsl.sp
+import org.maplibre.compose.expressions.dsl.span
 import org.maplibre.compose.expressions.dsl.textOffset
 import org.maplibre.compose.expressions.dsl.zoom
+import org.maplibre.compose.expressions.value.IconPitchAlignment
+import org.maplibre.compose.expressions.value.IconRotationAlignment
+import org.maplibre.compose.expressions.value.SymbolAnchor
+import org.maplibre.compose.expressions.value.SymbolZOrder
 import org.maplibre.compose.expressions.value.TranslateAnchor
 import org.maplibre.compose.interaction.ClickEvent
 import org.maplibre.compose.interaction.ClickResult
@@ -43,7 +47,6 @@ import org.maplibre.compose.layers.SymbolLayer
 import org.maplibre.compose.map.LocalMapState
 import org.maplibre.compose.sources.GeoJsonData
 import org.maplibre.compose.sources.rememberGeoJsonSource
-import org.maplibre.compose.util.DpPadding
 import org.maplibre.compose.util.MaplibreComposable
 import org.maplibre.spatialk.geojson.Feature
 import org.maplibre.spatialk.geojson.FeatureCollection
@@ -65,16 +68,24 @@ fun PinsLayers(
 
     val pinIcons = remember(pins) { pins.mapTo(LinkedHashSet()) { it.icon } }
     val pinPainters = pinIcons.associateWith { painterResource(it) }
-    LaunchedEffect(mapImages, pinPainters) { mapImages.addPins(pinPainters) }
-
-    val features by produceState<List<Feature<Point, JsonObject>>>(emptyList(), pins) {
-        value = withContext(Dispatchers.Default) { pins.map { it.toGeoJsonFeature() } }
+    val features by produceState<List<Feature<Point, JsonObject>>>(
+        emptyList(), pins, mapImages, pinPainters
+    ) {
+        // images must be there before the features: MapLibre lays out a symbol whose text image is
+        // missing without it and (unlike for icon images) does not lay it out again once added
+        mapImages.addPins(pinPainters)
+        value = withContext(Dispatchers.Default) {
+            pins.sortedBy { it.order }.map { it.toGeoJsonFeature() }
+        }
     }
     val source = rememberGeoJsonSource(GeoJsonData.Features(FeatureCollection(features))) {
         cluster = true
         clusterMaxZoom = CLUSTER_MAX_ZOOM
         clusterRadius = 55
     }
+    // the pins have their own unclustered source because a clustered source does not retain the
+    // order of the features, which determines which pins are placed first, see below
+    val pinsSource = rememberGeoJsonSource(GeoJsonData.Features(FeatureCollection(features)))
 
     val currentOnZoomToCluster by rememberUpdatedState(onZoomToCluster)
     val currentOnClickPin by rememberUpdatedState(onClickPin)
@@ -129,25 +140,32 @@ fun PinsLayers(
         translate = offset(0.dp, -12.dp), // so that it hides behind the pin
         translateAnchor = const(TranslateAnchor.Viewport),
     )
+    // The pin is drawn as an image in the text, so that it stands upright, while its shadow is
+    // drawn as the icon, lying flat on the map. Icon and text of a symbol are shown or hidden
+    // together on collision, so a shadow is never displayed without its pin.
+    // Within a tile, all icons are drawn before all text, so all shadows are below all pins. This
+    // is not the case when a symbol sort key is used (icons and text are then drawn interleaved
+    // per sort key), so the priority of the pins is determined by the order of the features.
     SymbolLayer(
         id = "pins-layer",
-        source = source,
+        source = pinsSource,
         filter = zoom().gt(const(CLUSTER_MAX_ZOOM)),
-        sortKey = feature["icon-order"].convertToNumber(),
-        iconImage = image(feature["icon-image"].convertToString()),
-        // constant icon size because click area would become a bit too small and more
-        // importantly, dynamic size per zoom + collision doesn't work together well, it
-        // results in a lot of flickering.
-        iconSize = const(1f),
-        iconPadding = const(DpPadding(
-            left = 2.5.dp,
-            top = -2.5.dp,
-            right = 0.dp,
-            bottom = -7.dp,
-        )),
-        iconOffset = const(DpOffset((-4.5).dp, (-34.5).dp)),
-        iconAllowOverlap = const(false),
-        iconIgnorePlacement = const(false),
+        zOrder = const(SymbolZOrder.Source),
+        iconImage = PinGroundShadow.image(),
+        iconAnchor = const(SymbolAnchor.TopLeft),
+        iconOffset = const(PinGroundShadow.offset),
+        iconPitchAlignment = const(IconPitchAlignment.Map),
+        iconRotationAlignment = const(IconRotationAlignment.Map),
+        iconAllowOverlap = const(true),
+        iconIgnorePlacement = const(true),
+        textField = format(span(image(feature["icon-image"].convertToString()))),
+        textAnchor = const(SymbolAnchor.Bottom),
+        // the image is aligned to the bottom of a line, so a line height larger than the default
+        // text size would leave a gap between the pin's tip and its position
+        textLineHeight = const(1.em),
+        textPadding = const((-2).dp),
+        textAllowOverlap = const(false),
+        textIgnorePlacement = const(false),
         onClick = ClickEvent::onClick,
     )
 }
