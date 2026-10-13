@@ -6,7 +6,6 @@ import androidx.compose.animation.core.spring
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
-import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import de.westnordost.streetcomplete.data.osm.mapdata.LatLon
@@ -17,6 +16,9 @@ import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import org.maplibre.compose.expressions.dsl.const
 import org.maplibre.compose.expressions.dsl.image
+import org.maplibre.compose.expressions.value.IconPitchAlignment
+import org.maplibre.compose.expressions.value.IconRotationAlignment
+import org.maplibre.compose.expressions.value.SymbolAnchor
 import org.maplibre.compose.layers.SymbolLayer
 import org.maplibre.compose.sources.GeoJsonData
 import org.maplibre.compose.sources.rememberGeoJsonSource
@@ -46,16 +48,27 @@ fun SelectedPinsLayer(icon: DrawableResource, pinPositions: Collection<LatLon>) 
     val source = rememberGeoJsonSource(data = GeoJsonData.Features(geometry))
 
     SymbolLayer(
+        id = "selected-pins-shadow-layer",
+        source = source,
+        iconImage = PinGroundShadow.image(),
+        iconSize = const(pinsSize.value),
+        iconAnchor = const(SymbolAnchor.TopLeft),
+        iconOffset = const(PinGroundShadow.offset),
+        iconPitchAlignment = const(IconPitchAlignment.Map),
+        iconRotationAlignment = const(IconRotationAlignment.Map),
+        iconAllowOverlap = const(true),
+        iconIgnorePlacement = const(true),
+    )
+    SymbolLayer(
         id = "selected-pins-layer",
         source = source,
-        iconImage = image(pinPainter(painterResource(icon)), size = DpSize(71.dp, 71.dp)),
+        iconImage = image(
+            pinPainter(painterResource(icon), withCastShadow = false),
+            size = DpSize(62.dp, 71.dp)
+        ),
         iconSize = const(pinsSize.value),
-        iconPadding = const(DpPadding(
-            left = 2.5.dp,
-            top = -2.5.dp,
-            right = 0.dp,
-            bottom = -7.dp,
-        )),
-        iconOffset = const(DpOffset((-4.5).dp, (-34.5).dp)),
+        iconAnchor = const(SymbolAnchor.Bottom),
+        // same as for the pins in PinsLayers
+        iconPadding = const(DpPadding(-2.dp, -2.dp, -2.dp, -2.dp)),
     )
 }
