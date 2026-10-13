@@ -226,11 +226,10 @@ kotlin {
 
                 // taking a photo (, picking an image from gallery, ...)
                 implementation("io.github.vinceglb:filekit-dialogs-compose:0.16.0")
+
+                // multiplatform webview (for login via OAuth)
+                implementation("dev.nucleusframework:composewebview:1.0.3")
             }
-        }
-        mobileMain.dependencies {
-            // multiplatform webview (for login via OAuth)
-            implementation("dev.nucleusframework:composewebview:1.0.3")
         }
         androidMain {
             dependsOn(jvmAndroidMain)
