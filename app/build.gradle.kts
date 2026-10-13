@@ -230,7 +230,7 @@ kotlin {
         }
         mobileMain.dependencies {
             // multiplatform webview (for login via OAuth)
-            implementation("io.github.kevinnzou:compose-webview-multiplatform:2.0.3")
+            implementation("dev.nucleusframework:composewebview:1.0.3")
         }
         androidMain {
             dependsOn(jvmAndroidMain)
