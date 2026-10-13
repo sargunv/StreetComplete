@@ -121,6 +121,8 @@ fun LoginScreen(
             }
 
             // handle error response
+            // TODO desktop: load errors aren't reported on desktop, so this is never triggered
+            //      there, see https://github.com/NucleusFramework/ComposeNativeWebview/issues/69
             LaunchedEffect(webViewState.errorsForCurrentRequest) {
                 val error = webViewState.errorsForCurrentRequest.firstOrNull()
                 if (error != null) {
