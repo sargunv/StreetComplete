@@ -5,7 +5,7 @@ plugins {
 }
 
 kotlin {
-    jvmToolchain(25)
+    jvmToolchain(providers.gradleProperty("desktopJvm").get().toInt())
 }
 
 val hostOs = when {
@@ -62,8 +62,7 @@ compose.desktop {
         }
         nativeDistributions {
             packageName = "StreetCompleteDev"
-            // TODO desktop: sync with versionName in androidApp and MARKETING_VERSION in iosApp
-            packageVersion = "1.0.0"
+            packageVersion = providers.gradleProperty("desktopPackageVersion").get()
             modules("java.prefs", "jdk.unsupported")
             macOS {
                 // keep in sync with DESKTOP_APP_ID in DesktopModule.kt
