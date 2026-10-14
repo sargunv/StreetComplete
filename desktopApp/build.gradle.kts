@@ -1,7 +1,8 @@
 plugins {
-    id("org.jetbrains.kotlin.jvm")
-    id("org.jetbrains.kotlin.plugin.compose")
-    id("org.jetbrains.compose")
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.compose.multiplatform)
+    alias(libs.plugins.nucleus)
 }
 
 kotlin {
@@ -18,64 +19,76 @@ val hostArch = when (System.getProperty("os.arch")) {
     "amd64", "x86_64" -> "x64"
     else -> error("Unsupported desktop architecture: ${System.getProperty("os.arch")}")
 }
-val mapBackend = if (hostOs == "macos") "metal" else "vulkan"
+val mapRuntime = when ("$hostOs-$hostArch") {
+    "macos-arm64" -> libs.maplibre.runtime.macosArm64
+    "macos-x64" -> libs.maplibre.runtime.macosX64
+    "windows-arm64" -> libs.maplibre.runtime.windowsArm64
+    "windows-x64" -> libs.maplibre.runtime.windowsX64
+    "linux-arm64" -> libs.maplibre.runtime.linuxArm64
+    "linux-x64" -> libs.maplibre.runtime.linuxX64
+    else -> error("Unsupported desktop platform: $hostOs-$hostArch")
+}
 
 dependencies {
     implementation(project(":app"))
     implementation(compose.desktop.currentOs)
 
     // Dependency injection
-    implementation("io.insert-koin:koin-core:4.2.2")
+    implementation(platform(libs.koin.bom))
+    implementation(libs.koin.core)
 
     // Compose
-    implementation("org.jetbrains.compose.components:components-resources:1.12.1")
+    implementation(libs.compose.resources)
 
     // File access
-    implementation("io.github.vinceglb:filekit-core:0.16.0")
+    implementation(libs.filekit.core)
 
     // Map
-    implementation("org.maplibre.compose:maplibre-compose:0.20.0")
-    runtimeOnly("org.maplibre.compose:maplibre-compose-runtime-$mapBackend-$hostOs-$hostArch:0.20.0")
+    implementation(libs.maplibre.compose)
+    implementation(libs.nucleus.application)
+    implementation(libs.nucleus.decoratedWindowTao)
+    runtimeOnly(mapRuntime)
 }
 
-compose.desktop {
-    application {
-        mainClass = "de.westnordost.streetcomplete.MainKt"
-        jvmArgs += listOf(
-            // see https://maplibre-compose.pages.dev/maplibre-compose/platform-setup/#java-and-native-access
-            "--enable-native-access=ALL-UNNAMED",
-            "-Dstreetcomplete.resources=${rootProject.file("app/src/commonMain/composeResources/files")}",
-        )
-        if (hostOs == "macos") {
-            // the .app bundle (see below) is signed, which changes LWJGL's native libraries, see
-            // https://maplibre-compose.pages.dev/maplibre-compose/platform-setup/#signed-packages
-            jvmArgs += "-Dorg.lwjgl.util.NoHashChecks=true"
-        }
-        nativeDistributions {
-            packageName = "StreetCompleteDev"
-            // TODO desktop: sync with versionName in androidApp and MARKETING_VERSION in iosApp
-            packageVersion = "1.0.0"
-            modules("java.prefs", "jdk.unsupported")
-            macOS {
-                // keep in sync with DESKTOP_APP_ID in DesktopModule.kt
-                bundleID = "de.westnordost.streetcomplete.desktop"
-                entitlementsFile.set(file("entitlements.plist"))
-                runtimeEntitlementsFile.set(file("entitlements.plist"))
-                // TODO macOS: these strings are copied from no_location_permission_warning in
-                //      strings.xml, and only in English. Translations are in values-*/strings.xml,
-                //      but would need to be added to the .app bundle as
-                //      <lang>.lproj/InfoPlist.strings, which compose.desktop doesn't support.
-                //      (For iOS, see UpdateIosAppTranslationsTask)
-                val locationDescription = "Precise location permission is needed to show your " +
-                    "position on the map and download data in your vicinity."
-                infoPlist {
-                    extraKeysRawXml = """
-                        <key>NSLocationWhenInUseUsageDescription</key>
-                        <string>$locationDescription</string>
-                        <key>NSLocationUsageDescription</key>
-                        <string>$locationDescription</string>
-                    """.trimIndent()
-                }
+nucleus.application {
+    mainClass = "de.westnordost.streetcomplete.MainKt"
+    // Nucleus already enables native access, which MapLibre needs, see
+    // https://maplibre-compose.pages.dev/maplibre-compose/platform-setup/#java-and-native-access
+    val resourcesDir = rootProject.file("app/src/commonMain/composeResources/files")
+    jvmArgs += "-Dstreetcomplete.resources=$resourcesDir"
+    if (hostOs == "macos") {
+        // Tao records the wrong UI thread without this flag, see
+        // https://github.com/NucleusFramework/Nucleus/issues/829
+        jvmArgs += "-XstartOnFirstThread"
+        // the .app bundle (see below) is signed, which changes LWJGL's native libraries, see
+        // https://maplibre-compose.pages.dev/maplibre-compose/platform-setup/#signed-packages
+        jvmArgs += "-Dorg.lwjgl.util.NoHashChecks=true"
+    }
+    nativeDistributions {
+        packageName = "StreetCompleteDev"
+        // TODO desktop: sync with versionName in androidApp and MARKETING_VERSION in iosApp
+        packageVersion = "1.0.0"
+        modules("java.prefs", "jdk.unsupported")
+        macOS {
+            // keep in sync with DESKTOP_APP_ID in DesktopModule.kt
+            bundleID = "de.westnordost.streetcomplete.desktop"
+            entitlementsFile.set(file("entitlements.plist"))
+            runtimeEntitlementsFile.set(file("entitlements.plist"))
+            // TODO macOS: these strings are copied from no_location_permission_warning in
+            //      strings.xml, and only in English. Translations are in values-*/strings.xml,
+            //      but would need to be added to the .app bundle as
+            //      <lang>.lproj/InfoPlist.strings, which Nucleus doesn't support yet, see
+            //      https://github.com/NucleusFramework/Nucleus/issues/833
+            //      (For iOS, see UpdateIosAppTranslationsTask)
+            val locationDescription = "Precise location permission is needed to show your " +
+                "position on the map and download data in your vicinity."
+            infoPlist {
+                extraKeysRawXml = """
+                    <key>NSLocationWhenInUseUsageDescription</key>
+                    <string>$locationDescription</string>
+                    <key>NSLocationUsageDescription</key>
+                    <string>$locationDescription</string>
+                """.trimIndent()
             }
         }
     }
