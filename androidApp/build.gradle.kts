@@ -8,14 +8,14 @@ plugins {
 
 android {
     namespace = "de.westnordost.streetcomplete.app"
-    compileSdk = 37
+    compileSdk = libs.versions.androidCompileSdk.get().toInt()
 
     defaultConfig {
         applicationId = "de.westnordost.streetcomplete"
-        minSdk = 25
-        targetSdk = 37
-        versionCode = 6404
-        versionName = "64.0-beta2"
+        minSdk = libs.versions.androidMinSdk.get().toInt()
+        targetSdk = libs.versions.androidTargetSdk.get().toInt()
+        versionCode = libs.versions.androidVersionCode.get().toInt()
+        versionName = libs.versions.androidVersionName.get()
 
         // no x86: the MapLibre Compose runtime has no x86 build, and other native libraries must
         // not make the app installable where the map cannot run
@@ -50,8 +50,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.toVersion(libs.versions.androidJvm.get())
+        targetCompatibility = JavaVersion.toVersion(libs.versions.androidJvm.get())
         isCoreLibraryDesugaringEnabled = true
     }
 
