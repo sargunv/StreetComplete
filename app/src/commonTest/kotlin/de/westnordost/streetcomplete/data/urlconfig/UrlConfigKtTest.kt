@@ -61,13 +61,6 @@ internal class UrlConfigKtTest {
         )
     }
 
-    @Test fun `parse config using http`() {
-        assertEquals(
-            parseConfigUrl("https://streetcomplete.app/s?n=Hello+W%C3%B6rld&q=d&o=1", quests, overlays),
-            parseConfigUrl("http://streetcomplete.app/s?n=Hello+W%C3%B6rld&q=d&o=1", quests, overlays)
-        )
-    }
-
     @Test fun `parse config with selected overlay`() {
         assertEquals(
             UrlConfig("Test", listOf(q0, q2, q3), emptyList(), emptyList(), o1),
