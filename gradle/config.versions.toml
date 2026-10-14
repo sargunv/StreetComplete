@@ -1,0 +1,24 @@
+[versions]
+
+# Platform releases
+# iOS release/build versions: iosApp/Configuration/Config.xcconfig
+# (MARKETING_VERSION / CURRENT_PROJECT_VERSION).
+# The shared BuildConfig also uses the Android version name.
+androidVersionName = "64.0-beta2"
+androidVersionCode = "6404"
+# TODO desktop: package version is still a placeholder.
+# macOS/Windows package versions require numeric components, without prerelease suffixes.
+desktopPackageVersion = "1.0.0"
+
+# Android SDK and JVM targets
+androidCompileSdk = "37"
+androidMinSdk = "25"
+androidTargetSdk = "37"
+androidJvm = "11"
+desktopJvm = "25"
+
+# Data snapshots
+# iD presets: https://github.com/openstreetmap/id-tagging-schema/releases
+idPresets = "v7.2.0"
+# Name Suggestion Index: https://github.com/osmlab/name-suggestion-index/tags (without leading "v")
+nameSuggestionIndex = "7.2.20260530"
