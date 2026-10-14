@@ -5,10 +5,6 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeSimulatorTest
 import java.io.FileWriter
 
-
-/** App version name, code and flavor */
-val appVersionName = "64.0-beta2"
-
 /** Localizations the app should be available in */
 val bcp47ExportLanguages = setOf(
     "ar", "ast", "be", "bg", "bs", "ca", "cs", "cy", "da", "de", "el",
@@ -18,15 +14,6 @@ val bcp47ExportLanguages = setOf(
     "ro", "ru", "sk", "sl", "sr-cyrl", "sr-latn", "sv", "sw", "th", "tr", "uk", "vi",
     "zh", "zh-CN", "zh-TW"
 )
-
-/** Version of the iD presets to use
- *  see https://github.com/openstreetmap/id-tagging-schema/releases for latest version */
-val presetsVersion = "v7.2.0"
-
-/** Version of the Name Suggestion Index to use
- *  see https://github.com/osmlab/name-suggestion-index/tags for latest version (without leading "v"
- *  */
-val nsiVersion = "7.2.20260530"
 
 /** Project ID of the crowdsource translation platform (from where to pull translations from) */
 val poEditorProjectId = "97843"
@@ -47,7 +34,7 @@ buildkonfig {
     objectName = "BuildConfig"
 
     defaultConfigs {
-        buildConfigField(STRING, "VERSION_NAME", appVersionName)
+        buildConfigField(STRING, "VERSION_NAME", libs.versions.androidVersionName.get())
         buildConfigField(BOOLEAN, "DEBUG", properties["app.streetcomplete.debug"]!!.toString())
     }
 
@@ -80,8 +67,8 @@ mokkery {
 kotlin {
     android {
         namespace = "de.westnordost.streetcomplete"
-        compileSdk = 37
-        minSdk = 25
+        compileSdk = libs.versions.androidCompileSdk.get().toInt()
+        minSdk = libs.versions.androidMinSdk.get().toInt()
 
         androidResources {
             enable = true
@@ -96,7 +83,7 @@ kotlin {
         }
 
         compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_11)
+            jvmTarget.set(JvmTarget.fromTarget(libs.versions.androidJvm.get()))
         }
 
         lint {
@@ -117,7 +104,7 @@ kotlin {
     }
 
     jvm("desktop") {
-        compilerOptions.jvmTarget.set(JvmTarget.JVM_25)
+        compilerOptions.jvmTarget.set(JvmTarget.fromTarget(libs.versions.desktopJvm.get()))
     }
 
     applyDefaultHierarchyTemplate()
@@ -367,26 +354,26 @@ tasks.register<GetTranslatorCreditsTask>("updateTranslatorCredits") {
 
 tasks.register<UpdatePresetsTask>("updatePresets") {
     group = "streetcomplete"
-    version = presetsVersion
+    version = libs.versions.idPresets.get()
     languageCodes = bcp47ExportLanguages
     targetDir = projectDir.resolve("src/commonMain/composeResources/files/osmfeatures/default")
 }
 
 tasks.register<UpdateNsiPresetsTask>("updateNsiPresets") {
     group = "streetcomplete"
-    version = nsiVersion
+    version = libs.versions.nameSuggestionIndex.get()
     targetDir = projectDir.resolve("src/commonMain/composeResources/files/osmfeatures/brands")
 }
 
 // tasks.register<DownloadBrandLogosTask>("downloadBrandLogos") {
 //     group = "streetcomplete"
-//     version = nsiVersion
+//     version = libs.versions.nameSuggestionIndex.get()
 //     targetDir = projectDir.resolve("src/commonMain/composeResources/files/osmfeatures/brands")
 // }
 
 tasks.register<DownloadAndConvertPresetIconsTask>("downloadAndConvertPresetIcons") {
     group = "streetcomplete"
-    version = presetsVersion
+    version = libs.versions.idPresets.get()
     targetDir = projectDir.resolve("src/commonMain/composeResources/drawable")
     iconSize = 34
     transformName = { "preset_" + it.replace('-', '_') }

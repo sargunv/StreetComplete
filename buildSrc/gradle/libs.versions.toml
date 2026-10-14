@@ -1,5 +1,6 @@
 [versions]
 
+java = "25"
 kotlin = "2.0.0"
 klaxon = "5.6"
 countryboundaries = "3.0.0"
