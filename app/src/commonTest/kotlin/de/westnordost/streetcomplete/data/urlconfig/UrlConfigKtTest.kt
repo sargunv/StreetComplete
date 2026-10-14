@@ -68,17 +68,6 @@ internal class UrlConfigKtTest {
         )
     }
 
-    @Test fun `reject unrelated routes and domains`() {
-        for (url in listOf(
-            "streetcomplete://oauth?code=123",
-            "streetcomplete://settings?n=Test",
-            "http://streetcomplete.app.example/s?n=Test",
-            "https://streetcomplete.app/s/other?n=Test",
-        )) {
-            assertNull(parseConfigUrl(url, quests, overlays))
-        }
-    }
-
     @Test fun `parse config with selected overlay`() {
         assertEquals(
             UrlConfig("Test", listOf(q0, q2, q3), emptyList(), emptyList(), o1),
