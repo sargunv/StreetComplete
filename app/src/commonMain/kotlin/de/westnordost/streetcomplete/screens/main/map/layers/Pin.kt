@@ -22,9 +22,6 @@ fun Pin.toGeoJsonFeature() =
         geometry = position.toGeometry(),
         properties =
             JsonObject(
-                (listOf(
-                    "icon-image" to JsonPrimitive("pin_" + icon.id),
-                    "icon-order" to JsonPrimitive(order + 50),
-                ) + properties).toMap()
+                (listOf("icon-image" to JsonPrimitive("pin_" + icon.id)) + properties).toMap()
             )
     )
